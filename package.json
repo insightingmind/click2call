@@ -8,6 +8,7 @@
     "start": "next start"
   },
   "dependencies": {
+    "@popperjs/core": "^2.4.4",
     "jssip": "^3.5.5",
     "next": "9.5.1",
     "react": "^16.13.1",

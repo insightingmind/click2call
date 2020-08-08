@@ -1,16 +1,115 @@
-html,
+.bd-placeholder-img {
+	font-size: 1.125rem;
+	text-anchor: middle;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+
+@media (min-width: 768px) {
+	.bd-placeholder-img-lg {
+		font-size: 3.5rem;
+	}
+}
+
+.blinking {
+	animation: blinkingText 0.8s infinite;
+}
+@keyframes blinkingText {
+	0% {
+		color: #000;
+	}
+	49% {
+		color: #000;
+	}
+	60% {
+		color: transparent;
+	}
+	99% {
+		color: transparent;
+	}
+	100% {
+		color: #000;
+	}
+}
+
 body {
-  padding: 0;
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
-    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+	background-color: #42a5f5;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+.row {
+	margin: 0 auto;
+	width: 280px;
+	clear: both;
+	text-align: center;
+	font-family: "Exo";
 }
 
-* {
-  box-sizing: border-box;
+.digit,
+.dig {
+	float: left;
+	padding: 10px 30px;
+	width: 30px;
+	font-size: 2rem;
+	cursor: pointer;
+}
+
+.sub {
+	font-size: 0.8rem;
+	color: grey;
+}
+
+.container {
+	background-color: white;
+	width: 320px;
+	padding: 20px;
+	margin: 30px auto;
+	height: 420px;
+	text-align: center;
+	box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
+}
+
+#output {
+	font-family: "Exo";
+	font-size: 2rem;
+	height: 60px;
+	font-weight: bold;
+	color: #1976d2;
+}
+
+#call {
+	display: inline-block;
+	background-color: #66bb6a;
+	padding: 4px 30px;
+	margin: 10px;
+	color: white;
+	border-radius: 4px;
+	float: left;
+	cursor: pointer;
+}
+
+.botrow {
+	margin: 0 auto;
+	width: 280px;
+	clear: both;
+	text-align: center;
+	font-family: "Exo";
+}
+
+.digit:active,
+.dig:active {
+	background-color: #e6e6e6;
+}
+
+#call:hover {
+	background-color: #81c784;
+}
+
+.dig {
+	float: left;
+	padding: 10px 20px;
+	margin: 10px;
+	width: 30px;
+	cursor: pointer;
 }

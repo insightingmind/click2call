@@ -21,7 +21,7 @@ class MyDocument extends Document {
 						content='0Hud9R7IwNS7E_rdKlYaIEOSTwx4rCKpZH7vUqc-Wx4'
 					/>
 					<meta name='viewport' content='width=device-width, initial-scale=1.0' />
-					
+					<link href='https://fonts.googleapis.com/css?family=Exo' rel='stylesheet' />
 				</Head>
 
 				<body style={{ backgroundColor: "#e8e9ef" }}>

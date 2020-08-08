@@ -1,5 +1,7 @@
 import React from "react";
 import * as JsSIP from "jssip";
+import Dialer from "./Dialer";
+let status = ["ended", "failed"];
 export default class SipClient extends React.Component {
 	constructor(props) {
 		super(props);
@@ -16,13 +18,15 @@ export default class SipClient extends React.Component {
 		this.session = null;
 		this.state = {
 			update: false,
-			uri: "",
-			username: "",
-			password: "",
-			status: null,
+			uri: "4call-dev-licensing.qspldev.com",
+			username: "4000",
+			password: "123456",
+			status: "ended",
 			number: 4002,
 			outGoing: false,
 			isConnected: false,
+			isIncomming: false,
+			isDialerHide: false,
 		};
 		this.connectToSip = this.connectToSip.bind(this);
 		this.onChange = this.onChange.bind(this);
@@ -62,8 +66,13 @@ export default class SipClient extends React.Component {
 	}
 	hangUpAndReject() {
 		this.incomingCallAudio.pause();
-
 		this.session.terminate();
+		this.forceUpdate();
+	}
+	cancelCall() {
+		this.incomingCallAudio.pause();
+		this.session.terminate();
+		this.forceUpdate();
 	}
 	mute() {
 		console.log("MUTE CLICKED");
@@ -133,11 +142,12 @@ export default class SipClient extends React.Component {
 			this.session.on("ended", () => completeSession("ended"));
 			this.session.on("failed", (ev) => {
 				console.log("status:failed", ev);
+				this.incomingCallAudio.pause();
 				completeSession("failed");
 			});
 			this.session.on("accepted", () => this.updateUi("accepted"));
 			this.session.on("confirmed", () => {
-				console.log("status:confirmed", ev);
+				// console.log("status:confirmed", ev);
 
 				var localStream = this.session.connection.getLocalStreams()[0];
 				var dtmfSender = this.session.connection.createDTMFSender(localStream.getAudioTracks()[0]);
@@ -147,8 +157,8 @@ export default class SipClient extends React.Component {
 				this.updateUi("confirmed");
 			});
 			this.session.on("peerconnection", (e) => {
-				// console.log("peerconnection", e);
-				console.log("status:peerconnection", ev);
+				console.log("peerconnection", e);
+				// console.log("status:peerconnection", ev);
 
 				let logError = "";
 				const peerconnection = e.peerconnection;
@@ -162,16 +172,18 @@ export default class SipClient extends React.Component {
 				};
 
 				var remoteStream = new MediaStream();
-				console.log("status:peerconnection.getReceivers", peerconnection.getReceivers());
+				// console.log("status:peerconnection.getReceivers", peerconnection.getReceivers());
 				peerconnection.getReceivers().forEach(function (receiver) {
-					console.log(receiver);
+					// console.log(receiver);
 					remoteStream.addTrack(receiver.track);
 				});
 			});
 
 			if (this.session.direction === "incoming") {
-				console.log("incomingCallAudio", this.incomingCallAudio);
 				this.incomingCallAudio.play();
+				let state = this.state;
+				state.isIncomming = true;
+				// this.setState(state);
 			} else {
 				// console.log("con", this.session.connection);
 				this.session.connection.addEventListener("addstream", (e) => {
@@ -184,6 +196,114 @@ export default class SipClient extends React.Component {
 		this.phone.start();
 	}
 	render() {
+		// console.log("session", this.state);
+		// let caller =
+		// 	this.session && this.session.remote_identity && this.session.remote_identity.uri ? (
+		// 		<p>{this.session.remote_identity.uri}</p>
+		// 	) : (
+		// 		""
+		// 	);
+		let onCallComp =
+			this.session && this.session.isEstablished() ? (
+				<button
+					className='f6 f5-l button-reset fl pv3 tc bn bg-animate bg-red  white pointer w-100 w-25-m w-100-l br2-ns br--right-ns'
+					type='submit'
+					onClick={(event) => this.hangUpAndReject(event)}
+					value='Answer'>
+					Reject
+				</button>
+			) : (
+				""
+			);
+		// this.session && this.session.isInProgress() &&
+		//  this.session.direction === "incoming"
+		let incomingCall =
+			this.session && this.session.isInProgress() ? (
+				this.session.direction === "incoming" ? (
+					<fieldset className='bg-white  flex cf bn ma0 pa0'>
+						<div class='flex items-start justify-center'>
+							<div class='flex flex-column'>
+								<div class=' w-100 pa3 mt2  w-50'>
+									<img
+										className='f6 f5-l fl pv3 tc bn bg-animate white pointer w-100 w-25-m w-40-l br2-ns br--right-ns'
+										src='/recieve.png'
+										onClick={(event) => this.answerCall(event)}
+										style={{ height: "50px", width: "50px" }}
+									/>
+									<div class=''>Accept</div>
+								</div>
+							</div>
+							<div class='flex flex-column'>
+								<div class=' w-100 pa3 mt2 '>
+									<img
+										className='f6 f5-l  fl pv3 tc bn bg-animate white pointer w-100 w-25-m w-40-l br2-ns br--right-ns'
+										onClick={(event) => this.hangUpAndReject(event)}
+										// className='f6 f5-l button-reset fl pv3 tc bn bg-animate bg-red  white pointer w-100 w-25-m w-40-l br2-ns br--right-ns'
+										src='/cut.png'
+										style={{ height: "50px", width: "50px" }}
+									/>
+									<div>Reject</div>
+								</div>
+							</div>
+						</div>
+					</fieldset>
+				) : (
+					<div class='flex flex-wrap'>
+						<div class=' w-50 pa3 mr2'>
+							<h1 className='blinking'>Ringing ...</h1>
+						</div>
+						<div class=' w-25 pa3 mr2'>
+							<img
+								className='f6 f5-l input-reset bn fl black-80  pa3 lh-solid w-100 w-75-m w-80-l br2-ns br--left-ns'
+								onClick={(event) => this.hangUpAndReject(event)}
+								// className='f6 f5-l button-reset fl pv3 tc bn bg-animate bg-red  white pointer w-100 w-25-m w-40-l br2-ns br--right-ns'
+								src='/cut.png'
+								style={{ height: "50px", width: "50px" }}
+							/>
+						</div>
+					</div>
+				)
+			) : (
+				""
+			);
+
+		let callingComp =
+			this.state.isConnected && status.includes(this.state.status) ? (
+				<fieldset className='cf  bn ma0 pa0'>
+					{/* <legend className='pa0 f5 f4-ns mb3 black-80'>Please Enter Your Number To Call</legend> */}
+					<div className='cf mw5 mw7-ns center   pa3 ph5-ns'>
+						{/* <label className='clip'>Email Address</label> */}
+						<input
+							className='f6 f5-l input-reset bn  mt3 fl black-80 bg-white pa3 lh-solid w-100 w-75-m w-80-l br2-ns br--left-ns'
+							placeholder='Extension'
+							type='number'
+							value={this.state.number}
+							onChange={(event) => this.onChange(event)}
+							name='number'
+							id='number'
+						/>
+						<img
+							className='f6 f5-l input-reset bn fl black-80  pa3 lh-solid w-100 w-75-m w-80-l br2-ns br--left-ns'
+							onClick={(event) => this.clickToCall(event)}
+							// className='f6 f5-l button-reset fl pv3 tc bn bg-animate bg-red  white pointer w-100 w-25-m w-40-l br2-ns br--right-ns'
+							src='/recieve.png'
+							style={{ height: "50px", width: "50px" }}
+						/>
+						{/* <button
+							className='f6 f5-l button-reset fl pv3 tc bn bg-animate bg-black-70 hover-bg-green white pointer w-100 w-25-m w-20-l br2-ns br--right-ns'
+							type='submit'
+							onClick={(event) => this.clickToCall(event)}
+							value='Call'>
+							Call
+						</button> */}
+					</div>
+				</fieldset>
+			) : !this.state.isConnected ? (
+				""
+			) : (
+				// <legend className='pa0 f5 f4-ns mb3 black-80'>Please Configure your provider.</legend>
+				""
+			);
 		return (
 			<>
 				{!this.state.isConnected ? (
@@ -239,57 +359,11 @@ export default class SipClient extends React.Component {
 				)}
 				{/* this.session && this.session.remote_identity */}
 				<div className='pa4-l'>
-					<div className=' mw7 center pa4 br2-ns ba '>
-						{this.session && this.session.isEstablished() ? (
-							this.audioPause()
-						) : !this.state.outGoing && this.session && this.session.remote_identity ? (
-							<fieldset className='cf bn ma0 pa0'>
-								{/* <p>{this.session.remote_identity.uri}</p> */}
-								<button
-									className='f6 f5-l button-reset fl pv3 mr6 tc bn bg-animate bg-green hover-bg-green white pointer w-100 w-25-m w-40-l br2-ns br--right-ns'
-									type='submit'
-									onClick={(event) => this.answerCall(event)}
-									value='Answer'>
-									Answer
-								</button>
-								<button
-									className='f6 f5-l button-reset fl pv3 tc bn bg-animate bg-red  white pointer w-100 w-25-m w-40-l br2-ns br--right-ns'
-									type='submit'
-									onClick={(event) => this.hangUpAndReject(event)}
-									value='Answer'>
-									Reject
-								</button>
-							</fieldset>
-						) : this.session && this.session.remote_identity ? (
-							<legend className='pa0 f5 f4-ns mt3 black-80'>Ringing ...</legend>
-						) : this.state.isConnected ? (
-							<fieldset className='cf  bn ma0 pa0'>
-								<legend className='pa0 f5 f4-ns mb3 black-80'>
-									Please Enter Your Number To Call
-								</legend>
-								<div className='cf'>
-									<label className='clip'>Email Address</label>
-									<input
-										className='f6 f5-l input-reset bn fl black-80 bg-white pa3 lh-solid w-100 w-75-m w-80-l br2-ns br--left-ns'
-										placeholder='Extension'
-										type='number'
-										value={this.state.number}
-										onChange={(event) => this.onChange(event)}
-										name='number'
-										id='number'
-									/>
-									<button
-										className='f6 f5-l button-reset fl pv3 tc bn bg-animate bg-black-70 hover-bg-green white pointer w-100 w-25-m w-20-l br2-ns br--right-ns'
-										type='submit'
-										onClick={(event) => this.clickToCall(event)}
-										value='Call'>
-										Call
-									</button>
-								</div>
-							</fieldset>
-						) : (
-							<legend className='pa0 f5 f4-ns mb3 black-80'>Please Configur to call.</legend>
-						)}
+					<div className=' mw7 center pa4 br2-ns  '>
+						{incomingCall}
+						{callingComp}
+						{onCallComp}
+						{/* <Dialer /> */}
 					</div>
 				</div>
 			</>
